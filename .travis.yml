@@ -1,0 +1,25 @@
+language: generic
+sudo: required
+services: 
+    - docker
+
+before_install:
+    - docker build -t kingsley555/react-test -f ./client/Dockerfile.dev ./client   
+
+
+
+script:
+    - docker run -e CI=true kingsley555/react-test npm test
+
+after_success: 
+        - docker build -t kingsley555/multi-client ./client
+        - docker build -t kingsley555/multi-nginx ./nginx
+        - docker build -t kingsley555/multi-server ./server
+        - docker build -t kingsley555/multi-worker ./worker
+         # Log in to the docker CLI
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+        # Take those images and push them to docker hub
+        - docker push kingsley555/multi-client
+        - docker push kingsley555/multi-nginx
+        - docker push kingsley555/multi-server
+        - docker push kingsley555/multi-worker
